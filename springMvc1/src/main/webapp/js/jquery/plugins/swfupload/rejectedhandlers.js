@@ -1,0 +1,420 @@
+function getDefaultUploadOpts(){
+	var ret = {
+		
+		 upload_url: connectorurl + ";jsessionid=" + session_id + "?Type=" + fileType + "&Command=FileUpload&Source=swfupload&CurrentFolder=" + currentFolder+"&memberId="+memberId,
+		 post_params: {
+		    "Type" : fileType,
+		    "Command" : "FileUpload",
+		    "CurrentFolder" : currentFolder,
+		    "jsessionid" : session_id,
+		    "Source" : "swfupload",
+		    "memberId":memberId
+		},
+		
+		// File Upload Settings
+		file_size_limit : "10 MB",	// 2MB
+		//file_types : "*.jpg;*.gif;*.png;*.jpeg;*.bmp",
+		file_types : "*.jpg;*.gif;*.png;*.jpeg",
+		file_types_description : "所有图片",
+		file_upload_limit : 100,
+		file_queue_limit : 1,
+		
+		// Event Handler Settings - these functions as defined in Handlers.js
+		//  The handlers are not part of SWFUpload but are part of my website and control how
+		//  my website reacts to the SWFUpload events.
+		file_queue_error_handler : fileQueueError,
+		file_dialog_complete_handler : fileDialogComplete,
+		upload_progress_handler : uploadProgress,
+		upload_error_handler : uploadError,
+		upload_success_handler : uploadSuccess,
+		upload_complete_handler : uploadComplete,
+		
+		// Button Settings
+		button_image_url : swfupload_dir + "images/SmallSpyGlassWithTransperancy_17x18.png",
+		button_placeholder_id : "spanButtonPlaceholder",
+		button_width: 150,
+		button_height: 18,
+		button_text : '<span class="button">上传图片 (不超过10M)</span>',
+		button_text_style : '.button { font-family: Helvetica, Arial, sans-serif; font-size: 12pt; }',
+		button_text_top_padding: 0,
+		button_text_left_padding: 18,
+		button_window_mode: SWFUpload.WINDOW_MODE.TRANSPARENT,
+		button_cursor: SWFUpload.CURSOR.HAND,
+		
+		// Flash Settings
+		flash_url : swfupload_dir + "swfupload.swf",
+		
+		custom_settings : {
+			upload_target : "divFileProgressContainer"
+		},
+	
+		// Debug Settings
+		debug: false
+	};
+	//alert(ret.upload_url);	
+	return ret;
+}
+/**
+ * 获得swfupload的参数
+ * @param fileType Image, Flash, File, Media
+ * @param currentFolder /
+ * @param typeFilters *.jpg;*.gif;*.png;*.jpeg;*.bmp
+ * @param typeDesc 图片，Flash, 文件, 多媒体
+ * @param queuelimit 同时上传个数 
+ * @return
+ */
+var fileQueueLimit;
+function getCustomUploadOpts(fileType, currentFolder, typeFilters, typeDesc, queuelimit){
+	var ret= {
+		// Backend Settings
+		 upload_url: connectorurl + ";jsessionid=" + session_id + "?Type=" + fileType + "&Command=FileUpload&Source=swfupload&CurrentFolder=" + currentFolder+"&memberId="+memberId,
+		 post_params: {
+		    "Type" : fileType,
+		    "Command" : "FileUpload",
+		    "CurrentFolder" : currentFolder,
+		    "jsessionid" : session_id,
+		    "Source" : "swfupload",
+		    "memberId":memberId
+		},
+		
+		// File Upload Settings
+		file_size_limit : "10 MB",	// 2MB
+		//file_types : "*.jpg;*.gif;*.png;*.jpeg;*.bmp",
+		file_types : typeFilters,
+		file_types_description : "所有" + typeDesc,
+		file_upload_limit : ""+100,
+		file_queue_limit : ""+queuelimit, 
+		// Event Handler Settings - these functions as defined in Handlers.js
+		//  The handlers are not part of SWFUpload but are part of my website and control how
+		//  my website reacts to the SWFUpload events.
+		file_queue_error_handler : fileQueueError,
+		file_dialog_complete_handler : fileDialogComplete,
+		upload_progress_handler : uploadProgress,
+		upload_error_handler : uploadError,
+		upload_success_handler : uploadSuccess,
+		upload_complete_handler : uploadComplete,
+		
+		// Button Settings
+		button_image_url : swfupload_dir + "images/SmallSpyGlassWithTransperancy_17x18.png",
+		button_placeholder_id : "spanButtonPlaceholder",
+		button_width: 150,
+		button_height: 18,
+		button_text : '<span class="button">上传' + typeDesc + '(不超过10M)</span>',
+		button_text_style : '.button { font-family: Helvetica, Arial, sans-serif; font-size: 12pt; }',
+		button_text_top_padding: 0,
+		button_text_left_padding: 18,
+		button_window_mode: SWFUpload.WINDOW_MODE.TRANSPARENT,
+		button_cursor: SWFUpload.CURSOR.HAND,
+		
+		// Flash Settings
+		flash_url : swfupload_dir + "swfupload.swf",
+		
+		custom_settings : {
+			upload_target : "divFileProgressContainer"
+		},
+	
+		// Debug Settings
+		debug: false
+	};fileQueueLimit =queuelimit;
+	//alert(ret.upload_url);
+	return ret;
+}
+function showImagePreview(field, url) {
+		 
+	$('.thumb_' + field).empty();
+	
+	if(url) 
+	 	 url = $.trim(url);
+	var imgCode = url.substring(url.lastIndexOf('/')+1);	
+	$('#' + field).val(imgCode);
+	var newImg = $('<img src="'+ url + '" />').hide();
+	newImg.appendTo('.thumb_' + field);
+	newImg.show();
+	newImg.fadeIn('slow');
+}
+/**
+ * 文件队列错误
+ */
+function fileQueueError(file, errorCode, message) {
+	try {
+		var imageName = "error.gif";
+		var errorName = "";
+		if (errorCode === SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
+			errorName = "只能同时上传" + fileQueueLimit + "个文件";
+		}
+
+		if (errorName !== "") {
+			alert(errorName);
+			return;
+		}
+		
+		switch (errorCode) {
+		case SWFUpload.QUEUE_ERROR.ZERO_BYTE_FILE:
+			imageName = "zerobyte.gif";
+			alert("文件大小为零");
+			break;
+		case SWFUpload.QUEUE_ERROR.FILE_EXCEEDS_SIZE_LIMIT:
+			imageName = "toobig.gif";
+			alert("文件大小超出限制");
+			break;
+		case SWFUpload.QUEUE_ERROR.ZERO_BYTE_FILE:
+		case SWFUpload.QUEUE_ERROR.INVALID_FILETYPE:
+		default:
+			alert(message);
+			break;
+		}
+
+		//addImage(swfupload_dir + "images/" + imageName);
+
+	} catch (ex) {
+		this.debug(ex);
+	}
+
+}
+/**
+ * 文件选择对话框关闭
+ */
+function fileDialogComplete(numFilesSelected, numFilesQueued) {
+	try {
+		if (numFilesQueued > 0) {
+			this.startUpload();			
+			$.blockUI({
+				message:$('#divFileProgressContainer'),
+				css: {
+		            border: 'none'
+		        }
+			});
+		}
+	} catch (ex) {
+		this.debug(ex);
+	}
+}
+/**
+ * 文件上传中...
+ */
+function uploadProgress(file, bytesLoaded) {
+	try {
+		var percent = Math.ceil((bytesLoaded / file.size) * 100);
+
+		var progress = new FileProgress(file,  this.customSettings.upload_target);
+		progress.setProgress(percent);
+		if (percent === 100) {
+			progress.setStatus("上传完成...");
+			progress.toggleCancel(false, this);
+		} else {
+			progress.setStatus("上传中...");
+			progress.toggleCancel(true, this);
+		}
+	} catch (ex) {
+		this.debug(ex);
+	}
+}
+/**
+ * 上传完成
+ */
+function uploadSuccess(file, serverData) {
+	try {
+		var progress = new FileProgress(file,  this.customSettings.upload_target);
+
+		if (serverData.substring(0, 7) === "FILEID:") {
+			if(typeof addImage == 'function')
+				addImage(serverData.substring(7));
+
+			progress.setStatus("显示图片.");
+			progress.toggleCancel(false);
+		} else {
+			//addImage(swfupload_dir + "images/error.gif");
+			progress.setStatus("错误.");
+			progress.toggleCancel(false);
+			alert(serverData);
+		}
+
+
+	} catch (ex) {
+		this.debug(ex);
+	}
+}
+/**
+ * 上传完成
+ */
+function uploadComplete(file) {
+	try {
+		/*  I want the next upload to continue automatically so I'll call startUpload here */
+		if (this.getStats().files_queued > 0) {
+			this.startUpload();
+		} else {
+			var progress = new FileProgress(file,  this.customSettings.upload_target);
+			progress.setComplete();
+			progress.setStatus("文件上传完成.");
+			progress.toggleCancel(false);
+						
+			$.unblockUI();
+			$(".blockUI").fadeOut("slow");
+		}
+	} catch (ex) {
+		this.debug(ex);
+	}
+}
+
+function uploadError(file, errorCode, message) {
+	var imageName =  "error.gif";
+	var progress;
+	try {
+
+		switch (errorCode) {
+		case SWFUpload.UPLOAD_ERROR.FILE_CANCELLED:
+			try {
+				progress = new FileProgress(file,  this.customSettings.upload_target);
+				progress.setCancelled();
+				progress.setStatus("已取消");
+				progress.toggleCancel(false);
+			}
+			catch (ex1) {
+				this.debug(ex1);
+			}
+			alert("上传已取消");
+			break;
+		case SWFUpload.UPLOAD_ERROR.UPLOAD_STOPPED:
+			try {
+				progress = new FileProgress(file,  this.customSettings.upload_target);
+				progress.setCancelled();
+				progress.setStatus("已停止");
+				progress.toggleCancel(true);
+			}
+			catch (ex2) {
+				this.debug(ex2);
+			}
+			alert("上传已停止");
+			break;
+		case SWFUpload.UPLOAD_ERROR.UPLOAD_LIMIT_EXCEEDED:
+			imageName = "uploadlimit.gif";
+			alert("上传文件大小超出限制");
+			break;
+		default:
+			alert(message);
+			break;
+		}
+
+		//addImage(swfupload_dir + "images/" + imageName);
+
+	} catch (ex3) {
+		this.debug(ex3);
+	}
+
+}
+
+function fadeIn(element, opacity) {
+	var reduceOpacityBy = 5;
+	var rate = 30;	// 15 fps
+
+
+	if (opacity < 100) {
+		opacity += reduceOpacityBy;
+		if (opacity > 100) {
+			opacity = 100;
+		}
+
+		if (element.filters) {
+			try {
+				element.filters.item("DXImageTransform.Microsoft.Alpha").opacity = opacity;
+			} catch (e) {
+				// If it is not set initially, the browser will throw an error.  This will set it if it is not set yet.
+				element.style.filter = 'progid:DXImageTransform.Microsoft.Alpha(opacity=' + opacity + ')';
+			}
+		} else {
+			element.style.opacity = opacity / 100;
+		}
+	}
+
+	if (opacity < 100) {
+		setTimeout(function () {
+			fadeIn(element, opacity);
+		}, rate);
+	}
+}
+
+
+
+/* ******************************************
+ *	FileProgress Object
+ *	Control object for displaying file info
+ * ****************************************** */
+
+function FileProgress(file, targetID) { 
+	this.fileProgressID = file.id;
+	
+	this.opacity = 100;
+	this.height = 0;
+	
+	this.fileProgressElement = null;
+	this.fileProgressWrapper = document.getElementById(this.fileProgressID);
+	
+	//alert(window.document.getElementById(targetID).tagName);
+	//if (window.checkAddFile(file)==false) {
+	//	swfuploadInstance.cancelUpload(fileProgressID);
+	//}
+	if (!this.fileProgressWrapper) {
+		this.fileProgressWrapper = document.createElement("li");
+		this.fileProgressWrapper.style.cssText ="display: block; width: 234px!important;";
+		this.fileProgressWrapper.id = this.fileProgressID;
+		
+		
+		this.fileNameElement = document.createElement("span");
+		this.fileNameElement.appendChild(document.createTextNode(file.name));
+		this.fileNameElement.id = file.name;
+		
+		this.fileSizeElement  = document.createElement("span");
+		this.fileSizeElement.style.cssText ="margin-left: 30px;";		 
+		this.fileSizeElement.appendChild(document.createTextNode(file.size));
+
+		this.fileDeleteElement  = document.createElement("span");
+		this.fileDeleteElement.style.cssText ="margin-left: 30px;";
+		
+		var deleteElement= document.createElement("a");
+		deleteElement.style.cssText="cursor:pointer";
+		deleteElement.appendChild(document.createTextNode("删除"));
+		this.fileDeleteElement.appendChild(deleteElement);
+		
+		this.fileProgressWrapper.appendChild(this.fileNameElement);
+		this.fileProgressWrapper.appendChild(this.fileSizeElement);
+		this.fileProgressWrapper.appendChild(this.fileDeleteElement);
+
+		document.getElementById(targetID).appendChild(this.fileProgressWrapper);
+		this.fileProgressElement = this.fileProgressWrapper;
+		
+	} else {
+		this.fileProgressElement = this.fileProgressWrapper;
+	}
+
+}
+FileProgress.prototype.setProgress = function (percentage) {
+	
+};
+FileProgress.prototype.setComplete = function () {
+	 
+
+};
+FileProgress.prototype.setError = function () {
+	 
+
+};
+FileProgress.prototype.setCancelled = function () {
+	 
+};
+FileProgress.prototype.setStatus = function (status) {
+	
+};
+
+FileProgress.prototype.toggleCancel = function (show, swfuploadInstance) {
+	
+	//this.fileProgressElement.childNodes[0].style.visibility = show ? "visible" : "hidden";
+	if (swfuploadInstance) {
+		var fileID = this.fileProgressID;
+	
+		this.fileProgressElement.childNodes[2].childNodes[0].onclick = function () {
+			swfuploadInstance.cancelUpload(fileID);
+			window.setTimeout(function(){$("#"+fileID).remove();}, 0);
+			return false;
+		};
+	}
+};

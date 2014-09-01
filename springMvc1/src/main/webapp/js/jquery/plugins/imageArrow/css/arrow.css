@@ -1,0 +1,63 @@
+.infiniteCarousel {
+  width: 748px;
+  position: relative;
+}
+
+.infiniteCarousel .wrapper {
+  width: 625px; /* .infiniteCarousel width - (.wrapper margin-left + .wrapper margin-right) */
+  overflow: auto;
+  min-height: 10em;
+  margin: 0 40px;
+  position: absolute;
+  top: 0;
+}
+
+.infiniteCarousel ul a img {
+  border: 1px solid #000;
+  -moz-border-radius: 1px;
+  -webkit-border-radius: 1px;
+}
+
+.infiniteCarousel .wrapper ul {
+  width: 9999px;
+  list-style-image:none;
+  list-style-position:outside;
+  list-style-type:none;
+  margin:0;
+  padding:0;
+  position: absolute;
+  top: 0;
+}
+
+.infiniteCarousel ul li {
+  display:block;
+  float:left;
+  padding: 1px;
+	/*overflow:hidden;*/
+  height: 120px;
+  width: 102px;
+}
+
+.infiniteCarousel ul li a img {
+  display:block;
+}
+
+.infiniteCarousel .arrow {
+  display: block;
+  height: 50px;
+  width: 20px;
+  text-indent: -999px;
+  position: absolute;
+  top: 37px;
+  cursor: pointer;
+}
+
+.infiniteCarousel .forward {
+  background: url(arrow-6.gif) no-repeat 0 0;
+  right: 10px;
+}
+
+.infiniteCarousel .back {
+  background: url(arrow-5.gif) no-repeat 0 0;
+  left: 10px;
+}
